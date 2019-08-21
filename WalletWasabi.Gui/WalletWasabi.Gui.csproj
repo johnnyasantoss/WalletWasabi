@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <PlatformTarget>x64</PlatformTarget>
@@ -46,6 +46,7 @@
 
   <ItemGroup>
     <PackageReference Include="AvalonStudio.Shell" Version="0.8.0.3" />
+    <PackageReference Include="ILLink.Tasks" Version="0.1.5-preview-*" />
   </ItemGroup>
 
   <ItemGroup>

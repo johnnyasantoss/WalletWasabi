@@ -1,0 +1,12 @@
+
+# Created by https://www.gitignore.io/api/cake
+# Edit at https://www.gitignore.io/?templates=cake
+
+### Cake ###
+tools/*
+!tools/packages.config
+!tools/packages.config.md5sum
+
+# End of https://www.gitignore.io/api/cake
+
+output*/
