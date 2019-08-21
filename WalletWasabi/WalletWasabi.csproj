@@ -7,47 +7,34 @@
     <LangVersion>latest</LangVersion>
     <NoWarn>1701;1702;1705;1591;1573</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- I don't know if win-x86 is a target -->
+    <RuntimeIdentifiers>linux-x64;osx-x64;win-x86;win-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.2\WalletWasabi.xml</DocumentationFile>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile></DocumentationFile>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DocumentationFile>false</DocumentationFile>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <ErrorReport>none</ErrorReport>
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="NBitcoin" Version="4.1.2.37" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0" />  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Gma\QrCodeNet\Encoding\ReedSolomon\" />
+    <PackageReference Include="NBitcoin" Version="4.1.2.37" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Hwi\Software\hwi-win64\hwi.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="OnionSeeds\MainOnionSeeds.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="OnionSeeds\TestNetOnionSeeds.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-
     <None Update="Hwi\Software\digests.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Hwi\Software\hwi-linux64.zip">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Hwi\Software\hwi-osx64.zip">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Hwi\Software\hwi-win64.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TorDaemons\digests.txt">
@@ -59,16 +46,38 @@
     <None Update="TorDaemons\Data.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="TorDaemons\tor-linux64.zip">
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(RuntimeIdentifier)'=='linux-x64'">
+    <None Update="TorDaemons\tor-linux64.zip" >
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="TorDaemons\tor-osx64.zip">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TorDaemons\tor-win32.zip">
+    <None Update="Hwi\Software\hwi-linux64.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <ItemGroup Condition="'$(RuntimeIdentifier)'=='osx-x64'">
+    <None Update="TorDaemons\tor-osx64.zip" >
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Hwi\Software\hwi-osx64.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(RuntimeIdentifier)'=='win-x86' Or '$(RuntimeIdentifier)'=='win-x64'">
+    <None Update="TorDaemons\tor-win32.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Hwi\Software\hwi-win64.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Hwi\Software\hwi-win64\hwi.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
   </ItemGroup>

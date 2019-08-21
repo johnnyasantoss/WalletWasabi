@@ -11,6 +11,7 @@
     <PackageTags>walletwasabi, wasabiwallet, wasabi, hiddenwallet, wallet, bitcoin, hbitcoin, nbitcoin, magicalcryptowallet, magicalwallet, tor, chaum, chaumian, zerolink, coinjoin, fungibility, privacy, anonymity</PackageTags>
     <RepositoryType>Git</RepositoryType>
     <RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,18 +21,6 @@
   <ItemGroup>
     <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
   </ItemGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.2\WalletWasabi.Backend.xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <!-- Needed for Swagger! -->
-    <DocumentationFile>bin\Release\netcoreapp2.2\WalletWasabi.Backend.xml</DocumentationFile>
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
-    <ErrorReport>none</ErrorReport>
-  </PropertyGroup>
   
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
