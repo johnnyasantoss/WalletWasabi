@@ -26,34 +26,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			Owner = owner;
 
-			GenerateCommand = ReactiveCommand.Create(() =>
-			{
-				DoGenerateCommand();
-			},
-			this.WhenAnyValue(x => x.TermsAccepted));
-
-			this.WhenAnyValue(x => x.Password).Subscribe(x =>
-			{
-				try
-				{
-					if (x.NotNullAndNotEmpty())
-					{
-						char lastChar = x.Last();
-						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-						{
-							Password = x.TrimEnd('\r', '\n');
-							if (TermsAccepted)
-							{
-								DoGenerateCommand();
-							}
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Logger.LogTrace(ex);
-				}
-			});
+			GenerateCommand = ReactiveCommand.Create(DoGenerateCommand, this.WhenAnyValue(x => x.TermsAccepted));
 		}
 
 		private void DoGenerateCommand()
@@ -67,7 +40,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 
 			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
-			Password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
+			Password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 
 			if (!TermsAccepted)
 			{
@@ -85,6 +58,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				try
 				{
+					PasswordHelper.Guard(Password);
+
 					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
 
 					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic);
@@ -97,7 +72,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 		}
 
-		private static readonly string[] ReservedFileNames = new string[]{
+		private static readonly string[] ReservedFileNames = new string[]
+		{
 			"CON", "PRN", "AUX", "NUL",
 			"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
 			"LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",

@@ -1,8 +1,5 @@
 ![](https://i.imgur.com/4GO7nnY.png)
 
-Wasabi Wallet, formerly known as HiddenWallet is a [ZeroLink](https://github.com/nopara73/ZeroLink) compliant Bitcoin wallet. We are dedicated to restore Bitcoin's fungibility and provide the highest possible privacy for our users.  
-HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zkSNACKs/WalletWasabi/tree/hiddenwallet-v0.6) branch of this repository.
-
 | Code Quality           | Windows Tests           | Linux Tests             | OSX Tests               | License                   |
 | :----------------------| :-----------------------| :-----------------------| :-----------------------| :-------------------------|
 | [![CodeFactor][9]][10] | [![Build Status][1]][2] | [![Build Status][3]][4] | [![Build Status][5]][6] | [![GitHub license][7]][8] |
@@ -23,13 +20,15 @@ HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zk
 
 ![](https://i.imgur.com/kpjT9ZV.png)
 
+For step by step instructions of PGP verification and package installation, see the [documentation](https://docs.wasabiwallet.io/using-wasabi/InstallPackage.html)
+
 # Build From Source Code
 
 ## Get The Requirements
 
 1. Get Git: https://git-scm.com/downloads
 2. Get .NET Core 2.2 SDK: https://www.microsoft.com/net/download (Note, you can disable .NET's telemetry by typing `export DOTNET_CLI_TELEMETRY_OPTOUT=1` on Linux and OSX or `set DOTNET_CLI_TELEMETRY_OPTOUT=1` on Windows.)
-  
+
 ## Get Wasabi
 
 Clone & Restore & Build

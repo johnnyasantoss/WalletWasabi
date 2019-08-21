@@ -26,19 +26,20 @@ namespace WalletWasabi.Gui.Controls
 
 		public EditableTextBlock()
 		{
-			EditClickTimer = new DispatcherTimer {
-				Interval = TimeSpan.FromMilliseconds(500),
+			EditClickTimer = new DispatcherTimer
+			{
+				Interval = TimeSpan.FromMilliseconds(500)
 			};
 
 			EditClickTimer.Tick += (sender, e) =>
-			 {
-				 EditClickTimer.Stop();
+			{
+				EditClickTimer.Stop();
 
-				 if (IsFocused && !InEditMode)
-				 {
-					 EnterEditMode();
-				 }
-			 };
+				if (IsFocused && !InEditMode)
+				{
+					EnterEditMode();
+				}
+			};
 
 			this.GetObservable(TextProperty).Subscribe(t =>
 			{
@@ -67,8 +68,7 @@ namespace WalletWasabi.Gui.Controls
 				else
 				{
 					var hit = this.InputHitTest(e.GetPosition(this));
-
-					if (hit == null)
+					if (hit is null)
 					{
 						ExitEditMode();
 					}
@@ -84,8 +84,7 @@ namespace WalletWasabi.Gui.Controls
 				if (InEditMode)
 				{
 					var hit = this.InputHitTest(e.GetPosition(this));
-
-					if (hit == null)
+					if (hit is null)
 					{
 						ExitEditMode();
 					}

@@ -59,7 +59,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		private object WalletLock { get; }
 
-		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType) : base(loadWalletType == LoadWalletType.Password ? "Test Password" : (loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet"))
+		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType)
+			: base(loadWalletType == LoadWalletType.Password ? "Test Password" : (loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet"))
 		{
 			Owner = owner;
 			Password = "";
@@ -103,10 +104,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				try
 				{
-					var ofd = new OpenFileDialog {
+					var ofd = new OpenFileDialog
+					{
 						AllowMultiple = false,
 						Title = "Import Coldcard"
 					};
+
+					if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					{
+						ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+					}
+
 					var selected = await ofd.ShowAsync(Application.Current.MainWindow, fallBack: true);
 					if (selected != null && selected.Any())
 					{
@@ -150,15 +158,23 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 			}, outputScheduler: RxApp.MainThreadScheduler);
 
-			LoadCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
-			TestPasswordCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
-			OpenFolderCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
-			ImportColdcardCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
+			OpenBrowserCommand = ReactiveCommand.Create<string>(x =>
+			{
+				IoHelpers.OpenBrowser(x);
+			});
+
+			OpenBrowserCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
+			LoadCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
+			TestPasswordCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
+			OpenFolderCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
+			ImportColdcardCommand.ThrownExceptions.Subscribe(Logger.LogWarning<LoadWalletViewModel>);
 
 			SetLoadButtonText();
 
 			IsHwWalletSearchTextVisible = LoadWalletType == LoadWalletType.Hardware;
 		}
+
+		public string UDevRulesLink => "https://github.com/bitcoin-core/HWI/tree/master/udev";
 
 		public bool IsHwWalletSearchTextVisible
 		{
@@ -247,14 +263,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 			else
 			{
-				if (SelectedWallet?.HardwareWalletInfo != null && !SelectedWallet.HardwareWalletInfo.Initialized) // If the hardware wallet wasn't initialized, then make the button say Setup, not Load.
-				{
-					LoadButtonText = "Setup Wallet";
-				}
-				else
-				{
-					LoadButtonText = "Load Wallet";
-				}
+				// If the hardware wallet was not initialized, then make the button say Setup, not Load.
+				LoadButtonText = SelectedWallet?.HardwareWalletInfo != null && !SelectedWallet.HardwareWalletInfo.Initialized
+					? "Setup Wallet"
+					: "Load Wallet";
 			}
 		}
 
@@ -343,14 +355,19 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				IsWalletSelected = SelectedWallet != null;
 				CanTestPassword = IsWalletSelected;
 
-				IsWalletOpened = Global.WalletService != null;
-				// If not busy loading.
-				// And wallet is selected.
-				// And no wallet is opened.
-				CanLoadWallet = !IsBusy && IsWalletSelected && !IsWalletOpened;
-
-				if (IsWalletOpened)
+				if (Global.WalletService is null)
 				{
+					IsWalletOpened = false;
+
+					// If not busy loading.
+					// And wallet is selected.
+					// And no wallet is opened.
+					CanLoadWallet = !IsBusy && IsWalletSelected;
+				}
+				else
+				{
+					IsWalletOpened = true;
+					CanLoadWallet = false;
 					SetWarningMessage("There is already an open wallet. Restart the application in order to open a different one.");
 				}
 
@@ -368,6 +385,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
 		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
 		public ReactiveCommand<Unit, Unit> ImportColdcardCommand { get; set; }
+		public ReactiveCommand<string, Unit> OpenBrowserCommand { get; }
 
 		public void TryRefreshHardwareWallets(IEnumerable<HardwareWalletInfo> hwis)
 		{
@@ -434,7 +452,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				SetValidationMessage("");
 				CanTestPassword = false;
-				var password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
+				var password = Guard.Correct(Password); // Do not let whitespaces to the beginning and to the end.
 				Password = ""; // Clear password field.
 
 				var selectedWallet = SelectedWallet;
@@ -487,13 +505,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						PinPadViewModel pinpad = IoC.Get<IShell>().Documents.OfType<PinPadViewModel>().FirstOrDefault();
 						if (pinpad is null)
 						{
-							pinpad = new PinPadViewModel(null);
+							pinpad = new PinPadViewModel(Global);
 							IoC.Get<IShell>().AddOrSelectDocument(pinpad);
 						}
 						var result = await pinpad.ShowDialogAsync();
 						if (!(result is true))
 						{
-							SetValidationMessage("PIN wasn't provided.");
+							SetValidationMessage("PIN was not provided.");
 							return null;
 						}
 
@@ -510,7 +528,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						selectedWallet = Wallets.FirstOrDefault(x => x.HardwareWalletInfo.Type == t && x.HardwareWalletInfo.Path == p);
 						if (selectedWallet is null)
 						{
-							SetValidationMessage("Couldn't find the hardware wallet you are working with. Did you disconnect it?");
+							SetValidationMessage("Could not find the hardware wallet you are working with. Did you disconnect it?");
 							return null;
 						}
 						else
@@ -537,7 +555,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 					if (selectedWallet.HardwareWalletInfo.MasterFingerprint is null)
 					{
-						throw new InvalidOperationException("Hardware wallet didn't provide a master fingerprint.");
+						throw new InvalidOperationException("Hardware wallet did not provide a master fingerprint.");
 					}
 
 					ExtPubKey extPubKey;
@@ -551,7 +569,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						MainWindowViewModel.Instance.StatusBar.TryRemoveStatus(StatusBarStatus.AcquiringXpubFromHardwareWallet);
 					}
 
-					Logger.LogInfo<LoadWalletViewModel>("Hardware wallet wasn't used previously on this computer. Creating new wallet file.");
+					Logger.LogInfo<LoadWalletViewModel>("Hardware wallet was not used previously on this computer. Creating new wallet file.");
 
 					if (TryFindWalletByExtPubKey(extPubKey, out string wn))
 					{
@@ -571,30 +589,39 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					// The selected wallet is not available any more (someone deleted it?).
 					OnCategorySelected();
-					SetValidationMessage("The selected wallet and its backup don't exist, did you delete them?");
+					SetValidationMessage("The selected wallet and its backup do not exist, did you delete them?");
 					return null;
 				}
 
 				KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
 				keyManager.HardwareWalletInfo = selectedWallet.HardwareWalletInfo;
 
-				if (!requirePassword && keyManager.PasswordVerified == false)
-				{
-					Owner.SelectTestPassword();
-					return null;
-				}
 				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
 				if (requirePassword)
 				{
-					if (!keyManager.TestPassword(password))
+					if (PasswordHelper.TryPassword(keyManager, password, out string compatibilityPasswordUsed))
+					{
+						SuccessMessage = "Correct password.";
+						if (compatibilityPasswordUsed != null)
+						{
+							WarningMessage = PasswordHelper.CompatibilityPasswordWarnMessage;
+							ValidationMessage = "";
+						}
+
+						keyManager.SetPasswordVerified();
+					}
+					else
 					{
 						SetValidationMessage("Wrong password.");
 						return null;
 					}
-					else
+				}
+				else
+				{
+					if (keyManager.PasswordVerified == false)
 					{
-						SetSuccessMessage("Correct password.");
-						keyManager.SetPasswordVerified();
+						Owner.SelectTestPassword();
+						return null;
 					}
 				}
 
@@ -604,7 +631,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				if (ex is IOException && ex.Message.Contains("promptpin", StringComparison.Ordinal))
 				{
-					// This happens for example when the PIN is cleared (timeout, disconnect) after the enumeration and the xpub wasn't yet acquired at all, so we reenumerate.
+					// This happens for example when the PIN is cleared (timeout, disconnect) after the enumeration and the xpub was not yet acquired at all, so we reenumerate.
 					// This will still show up the error, but at least this'll make sure that the new hardware wallet state is shown in the GUI, so they can click Load again.
 					var enumRes = await HwiProcessManager.EnumerateAsync();
 					TryRefreshHardwareWallets(enumRes);

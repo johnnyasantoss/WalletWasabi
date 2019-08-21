@@ -84,7 +84,7 @@ namespace NBitcoin
 		{
 			// We omit Guard, because it's performance critical in Wasabi.
 			// We start with the inputs, because, this check is faster.
-			// Note: by testing performance the order doesn't seem to affect the speed of loading the wallet.
+			// Note: by testing performance the order does not seem to affect the speed of loading the wallet.
 			foreach (TxIn input in me.Inputs)
 			{
 				if (input.ScriptSig is null || input.ScriptSig == Script.Empty)
@@ -105,9 +105,9 @@ namespace NBitcoin
 		public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me, bool includeSingle)
 		{
 			return me.Outputs.GroupBy(x => x.Value)
-			   .ToDictionary(x => x.Key, y => y.Count())
-			   .Select(x => (x.Key, x.Value))
-			   .Where(x => includeSingle || x.Value > 1);
+				.ToDictionary(x => x.Key, y => y.Count())
+				.Select(x => (x.Key, x.Value))
+				.Where(x => includeSingle || x.Value > 1);
 		}
 
 		public static int GetAnonymitySet(this Transaction me, int outputIndex)
@@ -119,7 +119,7 @@ namespace NBitcoin
 			// 3. Anonymity set cannot be larger than the number of inputs.
 			var inputCount = me.Inputs.Count;
 			var anonSet = Math.Min(equalOutputs, inputCount);
-			return equalOutputs;
+			return anonSet;
 		}
 
 		public static int GetAnonymitySet(this Transaction me, uint outputIndex) => GetAnonymitySet(me, (int)outputIndex);
@@ -163,10 +163,10 @@ namespace NBitcoin
 			return VerifySignature(dataHash, signature, signer.Key.PubKey);
 		}
 
-		public static uint256 BlindScript(this Requester requester, PubKey signerPubKey, PubKey RPubKey, Script script)
+		public static uint256 BlindScript(this Requester requester, PubKey signerPubKey, PubKey rPubKey, Script script)
 		{
 			var msg = new uint256(Hashes.SHA256(script.ToBytes()));
-			return requester.BlindMessage(msg, RPubKey, signerPubKey);
+			return requester.BlindMessage(msg, rPubKey, signerPubKey);
 		}
 
 		public static Signer CreateSigner(this SchnorrKey schnorrKey)
@@ -213,9 +213,9 @@ namespace NBitcoin
 		/// </summary>
 		public static void AddRangeWithOptimize(this TxOutList me, IEnumerable<TxOut> collection)
 		{
-			foreach (var txout in collection)
+			foreach (var txOut in collection)
 			{
-				me.AddWithOptimize(txout);
+				me.AddWithOptimize(txOut);
 			}
 		}
 
@@ -253,15 +253,30 @@ namespace NBitcoin
 			return psbt.ExtractSmartTransaction(Height.Unknown);
 		}
 
-		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height, uint256 blockHash = null, int blockIndex = 0, string label = "", DateTimeOffset? firstSeenIfMemPoolTime = null, bool isReplacement = false)
+		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height, uint256 blockHash = null, int blockIndex = 0, string label = "", DateTimeOffset? firstSeenIfMempoolTime = null, bool isReplacement = false)
 		{
 			var extractedTx = psbt.ExtractTransaction();
-			return new SmartTransaction(extractedTx, height, blockHash, blockIndex, label, firstSeenIfMemPoolTime, isReplacement);
+			return new SmartTransaction(extractedTx, height, blockHash, blockIndex, label, firstSeenIfMempoolTime, isReplacement);
 		}
 
 		public static void SortByAmount(this TxOutList list)
 		{
 			list.Sort((x, y) => x.Value.CompareTo(y.Value));
+		}
+
+		public static void SortByAmount(this TxInList list, List<Coin> coins)
+		{
+			var map = new Dictionary<TxIn, Coin>();
+			foreach (var coin in coins)
+			{
+				map.Add(list.Single(x => x.PrevOut == coin.Outpoint), coin);
+			}
+			list.Sort((x, y) => map[x].Amount.CompareTo(map[y].Amount));
+		}
+
+		public static Money GetTotalFee(this FeeRate me, int vsize)
+		{
+			return Money.Satoshis(Math.Round(me.SatoshiPerByte * vsize));
 		}
 	}
 }

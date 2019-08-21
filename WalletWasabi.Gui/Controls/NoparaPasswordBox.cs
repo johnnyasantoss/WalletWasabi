@@ -31,13 +31,15 @@ namespace WalletWasabi.Gui.Controls
 			"说太多灯泡笑话的人，很快就会心力交瘁。", // Man who tell one too many light bulb jokes soon burn out!
 			"汤面火锅", //Noodle soup, hot pot
 			"你是我见过的最可爱的僵尸。", //You’re the cutest zombie I’ve ever seen.
-			"永不放弃。", //Never don't give up.
+			"永不放弃。", //Never do not give up.
 			"如果你是只宠物小精灵，我就选你。" //If you were a Pokemon, I'd choose you.
 		};
 
 		private static Key[] SuppressedKeys { get; } =
-			{ Key.LeftCtrl, Key.RightCtrl, Key.LeftAlt, Key.RightAlt, Key.LeftShift, Key.RightShift, Key.Escape, Key.CapsLock, Key.NumLock, Key.LWin, Key.RWin,
-			Key.Left,Key.Right,Key.Up,Key.Down  };
+		{
+			Key.LeftCtrl, Key.RightCtrl, Key.LeftAlt, Key.RightAlt, Key.LeftShift, Key.RightShift, Key.Escape, Key.CapsLock, Key.NumLock, Key.LWin, Key.RWin,
+			Key.Left, Key.Right, Key.Up, Key.Down, Key.Enter
+		};
 
 		private bool _supressChanges;
 		private string _displayText = "";
@@ -112,7 +114,7 @@ namespace WalletWasabi.Gui.Controls
 				IsPasswordVisible = x;
 			});
 
-			this.WhenAnyValue(x => x.IsPasswordVisible).Subscribe(IsVisible =>
+			this.WhenAnyValue(x => x.IsPasswordVisible).Subscribe(_ =>
 			{
 				PaintText();
 			});
@@ -179,14 +181,14 @@ namespace WalletWasabi.Gui.Controls
 					var s = ls[Random.Next(0, ls.Count - 1)];
 					sb.Append(s);
 					ls.Remove(s);
-					if (sb.Length >= Constants.MaxPasswordLength)
+					if (PasswordHelper.IsTooLong(sb.Length))
 					{
 						break;
 					}
 				}
 				while (ls.Count > 0);
 			}
-			while (sb.Length < Constants.MaxPasswordLength); // Generate more text using the same sentences.
+			while (sb.Length < PasswordHelper.MaxPasswordLength); // Generate more text using the same sentences.
 			_displayText = sb.ToString();
 		}
 
@@ -208,20 +210,17 @@ namespace WalletWasabi.Gui.Controls
 					return;
 				}
 
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				{
-					if (e.Key == Key.V && e.Modifiers == InputModifiers.Control) // Prevent paste.
-					{
-						return;
-					}
-				}
-
-				bool paste = false;
 				if (e.Key == Key.V)
 				{
+					bool paste = false;
+
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 					{
-						if (e.Modifiers == InputModifiers.Windows)
+						if (e.Modifiers == InputModifiers.Control) // Prevent paste.
+						{
+							return;
+						}
+						else if (e.Modifiers == InputModifiers.Windows)
 						{
 							paste = true;
 						}
@@ -233,49 +232,51 @@ namespace WalletWasabi.Gui.Controls
 							paste = true;
 						}
 					}
+
+					if (paste)
+					{
+						string text = await Application.Current.Clipboard.GetTextAsync();
+						if (!string.IsNullOrEmpty(text))
+						{
+							e.Handled = OnTextInput(text);
+						}
+
+						return;
+					}
 				}
 
-				if (paste)
+				if (Sb.Length > 0)
 				{
-					string text = await Application.Current.Clipboard.GetTextAsync();
-					if (!string.IsNullOrEmpty(text))
+					if (e.Key == Key.Back) // Backspace button -> delete from the end.
 					{
-						e.Handled = OnTextInput(text, true);
-						if (!e.Handled)
+						if (SelectionLength == 0)
 						{
-							_ = DisplayWarningAsync("Password too long (Max 150 characters)");
+							if (CaretIndex == Text.Length)
+							{
+								Sb.Remove(Sb.Length - 1, 1);
+							}
 						}
-					}
-				}
-				else if (e.Key == Key.Back && Sb.Length > 0) // Backspace button -> delete from the end.
-				{
-					if (SelectionLength != 0)
-					{
-						Sb.Clear();
-					}
-					else
-					{
-						if (CaretIndex == Text.Length)
+						else
 						{
-							Sb.Remove(Sb.Length - 1, 1);
+							Sb.Clear();
 						}
+						e.Handled = true;
 					}
-					e.Handled = true;
-				}
-				else if (e.Key == Key.Delete && Sb.Length > 0) //Delete button -> delete from the beginning.
-				{
-					if (SelectionLength != 0)
+					else if (e.Key == Key.Delete) //Delete button -> delete from the beginning.
 					{
-						Sb.Clear();
-					}
-					else
-					{
-						if (CaretIndex == 0)
+						if (SelectionLength == 0)
 						{
-							Sb.Remove(0, 1);
+							if (CaretIndex == 0)
+							{
+								Sb.Remove(0, 1);
+							}
 						}
+						else
+						{
+							Sb.Clear();
+						}
+						e.Handled = true;
 					}
-					e.Handled = true;
 				}
 				else
 				{
@@ -296,10 +297,15 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override void OnTextInput(TextInputEventArgs e)
 		{
-			e.Handled = OnTextInput(e.Text, false);
+			e.Handled = OnTextInput(e.Text);
 		}
 
-		private bool OnTextInput(string text, bool isPaste)
+		/// <summary>
+		/// All text input operation (keydown/paste/delete) should call this.
+		/// </summary>
+		/// <param name="text"></param>
+		/// <returns></returns>
+		private bool OnTextInput(string text)
 		{
 			if (_supressChanges)
 			{
@@ -314,9 +320,10 @@ namespace WalletWasabi.Gui.Controls
 				SelectionStart = SelectionEnd = CaretIndex = 0;
 				_supressChanges = false;
 			}
-			if (isPaste && Sb.Length + text.Length > Constants.MaxPasswordLength) // Don't allow pastes that would be too long
+			if (PasswordHelper.IsTooLong(Sb.Length + text.Length)) // Do not allow insert that would be too long.
 			{
 				handledCorrectly = false;
+				_ = DisplayWarningAsync(PasswordHelper.PasswordTooLongMessage);
 			}
 			else if (CaretIndex == 0)
 			{
@@ -327,11 +334,15 @@ namespace WalletWasabi.Gui.Controls
 				Sb.Append(text);
 			}
 
-			if (handledCorrectly && Sb.Length > Constants.MaxPasswordLength) // Ensure the maximum length.
+			if (handledCorrectly && PasswordHelper.IsTooLong(Sb.Length)) // We should not get here, ensure the maximum length.
 			{
-				Sb.Remove(Constants.MaxPasswordLength, Sb.Length - Constants.MaxPasswordLength);
+				PasswordHelper.IsTooLong(Sb.ToString(), out string limitedPassword);
+				Sb.Clear();
+				Sb.Append(limitedPassword);
 				handledCorrectly = false; // Should play beep sound not working on windows.
+				_ = DisplayWarningAsync(PasswordHelper.PasswordTooLongMessage);
 			}
+
 			PaintText();
 			return handledCorrectly;
 		}
@@ -380,13 +391,23 @@ namespace WalletWasabi.Gui.Controls
 			{
 				GenerateNewRandomSequence();
 			}
+			var password = Sb.ToString();
 
-			Password = Sb.ToString();
-			Text = _displayText.Substring(0, Sb.Length);
+			if (PasswordHelper.IsTrimable(password, out string trimmedPassword))
+			{
+				password = trimmedPassword;
+				Sb.Clear();
+				Sb.Append(password);
+				_ = DisplayWarningAsync(PasswordHelper.TrimmedMessage);
+			}
+
+			Text = _displayText.Substring(0, password.Length);
 			if (IsPasswordVisible)
 			{
-				Text = Password;
+				Text = password;
 			}
+
+			Password = Sb.ToString(); // Do not use Password instead of local variable. It is not changed immediately after this line.
 
 			_supressChanges = true;
 			try

@@ -8,8 +8,10 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Models;
+using WalletWasabi.Models.TransactionBuilding;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -17,17 +19,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private CompositeDisposable Disposables { get; set; }
 
-		private string _txid;
+		private string _txId;
 		private string _psbtJsonText;
 		private string _psbtHexText;
 		private string _psbtBase64Text;
 		private byte[] _psbtBytes;
 		public ReactiveCommand<Unit, Unit> ExportBinaryPsbtCommand { get; set; }
 
+		public bool? IsLurkingWifeMode => Global.UiConfig.LurkingWifeMode;
+
 		public string TxId
 		{
-			get => _txid;
-			set => this.RaiseAndSetIfChanged(ref _txid, value);
+			get => _txId;
+			set => this.RaiseAndSetIfChanged(ref _txId, value);
 		}
 
 		public string PsbtJsonText
@@ -61,11 +65,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				try
 				{
 					var psbtExtension = "psbt";
-					var sfd = new SaveFileDialog {
+					var sfd = new SaveFileDialog
+					{
 						DefaultExtension = psbtExtension,
 						InitialFileName = TxId,
 						Title = "Export Binary PSBT"
 					};
+
+					if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					{
+						sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+					}
 
 					string fileFullName = await sfd.ShowAsync(Application.Current.MainWindow, fallBack: true);
 					if (!string.IsNullOrWhiteSpace(fileFullName))
@@ -93,14 +103,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen()
 		{
-			if (Disposables != null)
-			{
-				throw new Exception("Transaction Viewer was opened before it was closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			base.OnOpen();
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(IsLurkingWifeMode));
+				this.RaisePropertyChanged(nameof(TxId));
+				this.RaisePropertyChanged(nameof(PsbtJsonText));
+				this.RaisePropertyChanged(nameof(TransactionHexText));
+				this.RaisePropertyChanged(nameof(PsbtBase64Text));
+			}).DisposeWith(Disposables);
 		}
 
 		public override bool OnClose()

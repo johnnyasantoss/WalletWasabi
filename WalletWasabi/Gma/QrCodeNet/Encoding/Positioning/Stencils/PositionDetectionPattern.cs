@@ -1,4 +1,4 @@
-﻿namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
+namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 {
 	internal class PositionDetectionPattern : PatternStencilBase
 	{
@@ -8,17 +8,17 @@
 		}
 
 		private static bool[,] PositionDetection { get; } = new[,]
-																		 {
-																			 { O, O, O, O, O, O, O, O, O },
-																			 { O, X, X, X, X, X, X, X, O },
-																			 { O, X, O, O, O, O, O, X, O },
-																			 { O, X, O, X, X, X, O, X, O },
-																			 { O, X, O, X, X, X, O, X, O },
-																			 { O, X, O, X, X, X, O, X, O },
-																			 { O, X, O, O, O, O, O, X, O },
-																			 { O, X, X, X, X, X, X, X, O },
-																			 { O, O, O, O, O, O, O, O, O }
-																		 };
+																		{
+																			{ O, O, O, O, O, O, O, O, O },
+																			{ O, X, X, X, X, X, X, X, O },
+																			{ O, X, O, O, O, O, O, X, O },
+																			{ O, X, O, X, X, X, O, X, O },
+																			{ O, X, O, X, X, X, O, X, O },
+																			{ O, X, O, X, X, X, O, X, O },
+																			{ O, X, O, O, O, O, O, X, O },
+																			{ O, X, X, X, X, X, X, X, O },
+																			{ O, O, O, O, O, O, O, O, O }
+																		};
 
 		public override bool[,] Stencil => PositionDetection;
 

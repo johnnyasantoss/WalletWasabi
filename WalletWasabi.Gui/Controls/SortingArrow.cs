@@ -40,7 +40,8 @@ namespace WalletWasabi.Gui.Controls
 			}
 
 			HorizontalContentAlignment = HorizontalAlignment.Stretch;
-			IconPath = new Path {
+			IconPath = new Path
+			{
 				Stretch = Stretch.Fill,
 				Stroke = Design.IsDesignMode ? Brushes.White : Application.Current.Resources[Global.ApplicationAccentForegroundBrushResourceKey] as IBrush,
 				StrokeThickness = 0.8,
@@ -49,9 +50,11 @@ namespace WalletWasabi.Gui.Controls
 				Margin = new Thickness(7, 0),
 				HorizontalAlignment = HorizontalAlignment.Right
 			};
+
 			TextBox = new TextBlock();
 
-			Grid stackPnl = new Grid {
+			Grid stackPnl = new Grid
+			{
 				Children =
 				{
 					new StackPanel

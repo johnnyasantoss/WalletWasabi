@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.Stores;
 using Xunit;
@@ -30,14 +31,14 @@ namespace WalletWasabi.Tests
 
 			// ASSERT EVENTS
 
-			// Assert some functions doesn't raise any events when default.
+			// Assert some functions do not raise any events when default.
 			Assert.Throws<PropertyChangedException>(() =>
 				Assert.PropertyChanged(hashChain,
 					nameof(hashChain.HashCount),
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert RemoveLast doesn't modify nor throw anything when nothing is added.
+						// Assert RemoveLast does not modify nor throw anything when nothing is added.
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
@@ -47,7 +48,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert RemoveLast doesn't modify nor throw anything when nothing is added.
+						// Assert RemoveLast does not modify nor throw anything when nothing is added.
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
@@ -57,7 +58,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert RemoveLast doesn't modify nor throw anything when nothing is added.
+						// Assert RemoveLast does not modify nor throw anything when nothing is added.
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
@@ -67,7 +68,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert RemoveLast doesn't modify nor throw anything when nothing is added.
+						// Assert RemoveLast does not modify nor throw anything when nothing is added.
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
@@ -77,7 +78,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert RemoveLast doesn't modify nor throw anything when nothing is added.
+						// Assert RemoveLast does not modify nor throw anything when nothing is added.
 						hashChain.RemoveLast();
 						AssertEverythingDefault(hashChain);
 					}));
@@ -109,7 +110,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert update server height doesn't raise unnecessary events.
+						// Assert update server height does not raise unnecessary events.
 						hashChain.UpdateServerTipHeight(newServerHeight);
 					}));
 			newServerHeight++;
@@ -119,7 +120,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert update server height doesn't raise unnecessary events.
+						// Assert update server height does not raise unnecessary events.
 						hashChain.UpdateServerTipHeight(newServerHeight);
 					}));
 			newServerHeight++;
@@ -129,7 +130,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert update server height doesn't raise unnecessary events.
+						// Assert update server height does not raise unnecessary events.
 						hashChain.UpdateServerTipHeight(newServerHeight);
 					}));
 			var sameServerheight = newServerHeight;
@@ -139,7 +140,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert update server height doesn't raise without actually changing.
+						// Assert update server height does not raise without actually changing.
 						hashChain.UpdateServerTipHeight(sameServerheight);
 					}));
 			Assert.Throws<PropertyChangedException>(() =>
@@ -148,7 +149,7 @@ namespace WalletWasabi.Tests
 					() =>
 					{
 						// ASSERT FUNCTIONS
-						// Assert update server height doesn't raise without actually changing.
+						// Assert update server height does not raise without actually changing.
 						hashChain.UpdateServerTipHeight(sameServerheight);
 					}));
 
@@ -347,10 +348,8 @@ namespace WalletWasabi.Tests
 			List<string> lines = new List<string>();
 			for (int i = 0; i < 1000; i++)
 			{
-				const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-				string line = new string(Enumerable.Repeat(chars, 100)
-				  .Select(s => s[random.Next(s.Length)]).ToArray());
+				string line = new string(Enumerable.Repeat(Constants.Chars, 100)
+					.Select(s => s[random.Next(s.Length)]).ToArray());
 
 				lines.Add(line);
 			}
@@ -387,9 +386,9 @@ namespace WalletWasabi.Tests
 				for (int i = 0; i < lines1.Length; i++)
 				{
 					string line = lines2[i];
-					var readline = lines1[i];
+					var readLine = lines1[i];
 
-					if (!line.Equals(readline))
+					if (!line.Equals(readLine))
 					{
 						return false;
 					}

@@ -12,11 +12,11 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class SuggestionBehavior : Behavior<TextBox>
+	public class SuggestionBehavior : Behavior<TextBox>
 	{
 		private CompositeDisposable Disposables { get; set; }
 
-		private static readonly AvaloniaProperty<IEnumerable<SuggestionViewModel>> SuggestionItemsProperty =
+		public static readonly AvaloniaProperty<IEnumerable<SuggestionViewModel>> SuggestionItemsProperty =
 			AvaloniaProperty.Register<SuggestionBehavior, IEnumerable<SuggestionViewModel>>(nameof(SuggestionItems), defaultBindingMode: BindingMode.TwoWay);
 
 		public IEnumerable<SuggestionViewModel> SuggestionItems
@@ -31,14 +31,14 @@ namespace WalletWasabi.Gui.Behaviors
 
 			base.OnAttached();
 
-			Disposables.Add(AssociatedObject.AddHandler(TextBox.KeyDownEvent, (sender, e) =>
+			Disposables.Add(AssociatedObject.AddHandler(InputElement.KeyDownEvent, (sender, e) =>
 			{
 				if (e.Key == Key.Tab)
 				{
 					HandleAutoUpdate();
 					e.Handled = true;
 				}
-				if (e.Key == Key.Down)
+				else if (e.Key == Key.Down)
 				{
 					if (SuggestionItems != null)
 					{
@@ -69,7 +69,7 @@ namespace WalletWasabi.Gui.Behaviors
 						e.Handled = true;
 					}
 				}
-				if (e.Key == Key.Up)
+				else if (e.Key == Key.Up)
 				{
 					if (SuggestionItems != null)
 					{
@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.Behaviors
 						e.Handled = true;
 					}
 				}
-				if (e.Key == Key.Enter)
+				else if (e.Key == Key.Enter)
 				{
 					if (SuggestionItems != null)
 					{

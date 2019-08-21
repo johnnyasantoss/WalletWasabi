@@ -34,7 +34,7 @@ namespace WalletWasabi.Gui.Tabs
 
 		public Version Version { get; }
 
-		public string VersionText => $"v{Version.ToString()}";
+		public string VersionText => $"v{Version}";
 
 		public string ClearnetLink => "https://wasabiwallet.io/";
 
@@ -42,10 +42,14 @@ namespace WalletWasabi.Gui.Tabs
 
 		public string SourceCodeLink => "https://github.com/zkSNACKs/WalletWasabi/";
 
+		public string StatusPageLink => "https://stats.uptimerobot.com/W7q65in4y";
+
 		public string CustomerSupportLink => "https://www.reddit.com/r/WasabiWallet/";
 
 		public string BugReportLink => "https://github.com/zkSNACKs/WalletWasabi/issues/";
 
-		public string FAQLink => "https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/FAQ.md";
+		public string FAQLink => "https://docs.wasabiwallet.io/FAQ/";
+
+		public string DocsLink => "https://docs.wasabiwallet.io/";
 	}
 }

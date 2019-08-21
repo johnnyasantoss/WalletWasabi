@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.IO;
+using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using static WalletWasabi.Http.Constants;
 
@@ -36,7 +37,7 @@ namespace WalletWasabi.Http.Models
 		// The OWS rule is used where zero or more linear whitespace octets	might appear.
 		public string ToString(bool endWithCRLF)
 		{
-			var ret = Name + ":" + Value;
+			var ret = $"{Name}:{Value}";
 			if (endWithCRLF)
 			{
 				ret += CRLF;
@@ -49,7 +50,7 @@ namespace WalletWasabi.Http.Models
 			return ToString(true);
 		}
 
-		public static HeaderField CreateNew(string fieldString)
+		public static async Task<HeaderField> CreateNewAsync(string fieldString)
 		{
 			fieldString = fieldString.TrimEnd(CRLF, StringComparison.Ordinal);
 
@@ -71,7 +72,7 @@ namespace WalletWasabi.Http.Models
 					throw new FormatException($"Wrong {nameof(HeaderField)}: {fieldString}.");
 				}
 
-				var value = reader.ReadToEnd();
+				var value = await reader.ReadToEndAsync().ConfigureAwait(false);
 				value = Guard.Correct(value);
 
 				return new HeaderField(name, value);

@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
 using System;
@@ -39,19 +39,19 @@ namespace WalletWasabi.Models
 			_hashCode = null;
 		}
 
-		public Money GetFeeRate(int feeTarget)
+		public FeeRate GetFeeRate(int feeTarget)
 		{
-			int satoshiPerByte = Estimations
-				.Where(x => x.Key <= feeTarget) // Where the target is still under or equals to the the requested target.
-				.Last() // The last should be the largest feeTarget.
+			// Where the target is still under or equal to the requested target.
+			decimal satoshiPerByte = Estimations
+				.Last(x => x.Key <= feeTarget) // The last should be the largest feeTarget.
 				.Value;
 
-			return Money.Satoshis(satoshiPerByte);
+			return new FeeRate(satoshiPerByte);
 		}
 
 		#region Equality
 
-		public override bool Equals(object obj) => obj is AllFeeEstimate && this == (AllFeeEstimate)obj;
+		public override bool Equals(object obj) => obj is AllFeeEstimate feeEstimate && this == feeEstimate;
 
 		public bool Equals(AllFeeEstimate other) => this == other;
 

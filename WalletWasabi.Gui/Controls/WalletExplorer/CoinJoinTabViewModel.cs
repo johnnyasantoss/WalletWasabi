@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _dequeueButtonText;
 		private const string DequeueButtonTextString = "Dequeue Selected Coins";
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
-		private int _coinJoinUntilAnonimitySet;
+		private int _coinJoinUntilAnonymitySet;
 		private TargetPrivacy _targetPrivacy;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						TargetPrivacy = TargetPrivacy.Some;
 						break;
 				}
-				Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonimitySet;
+				Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonymitySet;
 				await Global.Config.ToFileAsync();
 			});
 
@@ -120,7 +120,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
 			{
-				CoinJoinUntilAnonimitySet = Global.Config.GetTargetLevel(target);
+				CoinJoinUntilAnonymitySet = Global.Config.GetTargetLevel(target);
 			});
 
 			this.WhenAnyValue(x => x.RoundTimesout)
@@ -136,12 +136,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen();
 
-			if (Disposables != null)
-			{
-				throw new Exception("CoinJoin tab opened before previous closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			TargetPrivacy = Global.Config.GetTargetPrivacy();
 
@@ -231,7 +226,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 					SetWarningMessage(builder.ToString());
-					return;
 				}
 			}
 			finally
@@ -270,8 +264,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						}
 					}
 					SetWarningMessage(builder.ToString());
-					Password = string.Empty;
-					return;
 				}
 
 				Password = string.Empty;
@@ -309,10 +301,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-#pragma warning disable CS0618 // Type or member is obsolete
-
 		private void UpdateRequiredBtcLabel(CcjClientRound registrableRound)
-#pragma warning restore CS0618 // Type or member is obsolete
 		{
 			if (Global.WalletService is null)
 			{
@@ -336,14 +325,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				else
 				{
 					var available = Global.WalletService.Coins.Where(x => x.Confirmed && !x.Unavailable);
-					if (available.Any())
-					{
-						RequiredBTC = registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray());
-					}
-					else
-					{
-						RequiredBTC = registrableRound.State.CalculateRequiredAmount();
-					}
+					RequiredBTC = available.Any()
+						? registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray())
+						: registrableRound.State.CalculateRequiredAmount();
 				}
 			}
 		}
@@ -462,10 +446,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _dequeueButtonText, value);
 		}
 
-		public int CoinJoinUntilAnonimitySet
+		public int CoinJoinUntilAnonymitySet
 		{
-			get => _coinJoinUntilAnonimitySet;
-			set => this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonimitySet, value);
+			get => _coinJoinUntilAnonymitySet;
+			set => this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonymitySet, value);
 		}
 
 		private TargetPrivacy TargetPrivacy

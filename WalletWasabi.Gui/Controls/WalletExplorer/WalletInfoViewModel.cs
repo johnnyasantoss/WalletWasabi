@@ -58,9 +58,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						Password = Guard.Correct(Password);
-						var secret = KeyManager.GetMasterExtKey(Password);
+						var secret = PasswordHelper.GetMasterExtKey(KeyManager, Password, out string isCompatibilityPasswordUsed);
 						Password = "";
+
+						if (isCompatibilityPasswordUsed != null)
+						{
+							SetWarningMessage(PasswordHelper.CompatibilityPasswordWarnMessage);
+						}
 
 						string master = secret.GetWif(Global.Network).ToWif();
 						string account = secret.Derive(KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
@@ -94,7 +98,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string ExtendedAccountPublicKey => KeyManager.ExtPubKey.ToString(Global.Network);
 		public string ExtendedAccountZpub => KeyManager.ExtPubKey.ToZpub(Global.Network);
-		public string AccountKeyPath => $"m/{KeyManager.AccountKeyPath.ToString()}";
+		public string AccountKeyPath => $"m/{KeyManager.AccountKeyPath}";
 		public string MasterKeyFingerprint => KeyManager.MasterFingerprint.ToString();
 		public ReactiveCommand<Unit, Unit> ToggleSensitiveKeysCommand { get; }
 
@@ -161,12 +165,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen()
 		{
-			if (Disposables != null)
-			{
-				throw new Exception("WalletInfo was opened before it was closed.");
-			}
-
-			Disposables = new CompositeDisposable();
+			Disposables = Disposables is null ? new CompositeDisposable() : throw new NotSupportedException($"Cannot open {GetType().Name} before closing it.");
 
 			Closing = new CancellationTokenSource();
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -31,7 +31,7 @@ namespace WalletWasabi.WebClients.BlockchainInfo
 
 				var exchangeRates = new List<ExchangeRate>
 				{
-					new ExchangeRate { Rate = rates.USD.Sell, Ticker = "USD" },
+					new ExchangeRate { Rate = rates.USD.Sell, Ticker = "USD" }
 				};
 
 				return exchangeRates;

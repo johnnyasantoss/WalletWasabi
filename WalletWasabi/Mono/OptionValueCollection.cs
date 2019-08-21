@@ -1,4 +1,4 @@
-﻿//
+//
 // Options.cs
 //
 // Authors:
@@ -268,7 +268,7 @@ namespace Mono.Options
 		public List<string> Values { get; set; } = new List<string>();
 		public OptionContext C { get; set; }
 
-		object IList.this[int index] { get { return this[index]; } set { (Values as IList)[index] = value; } }
+		object IList.this[int index] { get => this[index]; set => (Values as IList)[index] = value; }
 
 		#endregion IList
 
@@ -293,7 +293,7 @@ namespace Mono.Options
 		{
 			if (C.Option is null)
 			{
-				throw new InvalidOperationException("OptionContext.Option is null.");
+				throw new InvalidOperationException($"{nameof(OptionContext)}.{nameof(OptionContext.Option)} is null.");
 			}
 
 			if (index >= C.Option.MaxValueCount)
@@ -305,8 +305,8 @@ namespace Mono.Options
 					index >= Values.Count)
 			{
 				throw new OptionException(string.Format(
-							C.OptionSet.MessageLocalizer("Missing required value for option '{0}'."), C.OptionName),
-						C.OptionName);
+					C.OptionSet.MessageLocalizer($"Missing required value for option '{C.OptionName}'.")),
+					C.OptionName);
 			}
 		}
 
@@ -317,10 +317,7 @@ namespace Mono.Options
 				AssertValid(index);
 				return index >= Values.Count ? null : Values[index];
 			}
-			set
-			{
-				Values[index] = value;
-			}
+			set => Values[index] = value;
 		}
 
 		#endregion IList<T>

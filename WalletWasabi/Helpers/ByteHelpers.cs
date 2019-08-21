@@ -98,14 +98,7 @@ namespace System
 			for (int i = 0; i < 256; i++)
 			{
 				string s = i.ToString("X2");
-				if (BitConverter.IsLittleEndian)
-				{
-					result[i] = s[0] + ((uint)s[1] << 16);
-				}
-				else
-				{
-					result[i] = s[1] + ((uint)s[0] << 16);
-				}
+				result[i] = BitConverter.IsLittleEndian ? s[0] + ((uint)s[1] << 16) : s[1] + ((uint)s[0] << 16);
 			}
 			return result;
 		}
@@ -158,14 +151,17 @@ namespace System
 			}
 
 			var bytes = new byte[hex.Length / 2];
-			var hexValue = new int[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05,
-	   0x06, 0x07, 0x08, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	   0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
+			var hexValue = new int[]
+			{
+				0x00, 0x01, 0x02, 0x03, 0x04, 0x05,
+				0x06, 0x07, 0x08, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+				0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F
+			};
 
 			for (int x = 0, i = 0; i < hex.Length; i += 2, x += 1)
 			{
 				bytes[x] = (byte)(hexValue[char.ToUpper(hex[i + 0]) - '0'] << 4 |
-								  hexValue[char.ToUpper(hex[i + 1]) - '0']);
+					hexValue[char.ToUpper(hex[i + 1]) - '0']);
 			}
 
 			return bytes;

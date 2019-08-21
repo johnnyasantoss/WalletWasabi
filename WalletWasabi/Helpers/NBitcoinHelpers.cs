@@ -23,16 +23,17 @@ namespace WalletWasabi.Helpers
 			return HashHelpers.GenerateSha256Hash(sb.ToString());
 		}
 
-		private static readonly Money[] ReasonableFees = new[] {
-				Money.Coins(0.002m),
-				Money.Coins(0.001m),
-				Money.Coins(0.0005m),
-				Money.Coins(0.0002m),
-				Money.Coins(0.0001m),
-				Money.Coins(0.00005m),
-				Money.Coins(0.00002m),
-				Money.Coins(0.00001m)
-			};
+		private static readonly Money[] ReasonableFees = new[]
+		{
+			Money.Coins(0.002m),
+			Money.Coins(0.001m),
+			Money.Coins(0.0005m),
+			Money.Coins(0.0002m),
+			Money.Coins(0.0001m),
+			Money.Coins(0.00005m),
+			Money.Coins(0.00002m),
+			Money.Coins(0.00001m)
+		};
 
 		public static Money TakeAReasonableFee(Money inputValue)
 		{
@@ -65,7 +66,7 @@ namespace WalletWasabi.Helpers
 			ExtPubKey epk;
 			try
 			{
-				epk = ExtPubKey.Parse(extPubKeyString);  // Starts with "ExtPubKey": "xpub...
+				epk = ExtPubKey.Parse(extPubKeyString); // Starts with "ExtPubKey": "xpub...
 			}
 			catch
 			{
@@ -75,28 +76,21 @@ namespace WalletWasabi.Helpers
 			return epk;
 		}
 
-		public static HDFingerprint BetterParseHDFingerprint(string hdFingerPrintString, bool reverseByteOrder = false)
+		public static HDFingerprint BetterParseHDFingerprint(string hdFingerprintString, bool reverseByteOrder = false)
 		{
-			hdFingerPrintString = Guard.NotNullOrEmptyOrWhitespace(nameof(hdFingerPrintString), hdFingerPrintString, trim: true);
+			hdFingerprintString = Guard.NotNullOrEmptyOrWhitespace(nameof(hdFingerprintString), hdFingerprintString, trim: true);
 
 			HDFingerprint hdfp;
 			try
 			{
-				var hdfpu = uint.Parse(hdFingerPrintString);
+				var hdfpu = uint.Parse(hdFingerprintString);
 				hdfp = new HDFingerprint(hdfpu);
 			}
 			catch
 			{
 				// Try hex, Old wallet format was like this.
-				var bytes = ByteHelpers.FromHex(hdFingerPrintString);
-				if (reverseByteOrder)
-				{
-					hdfp = new HDFingerprint(bytes.Reverse().ToArray());
-				}
-				else
-				{
-					hdfp = new HDFingerprint(bytes);
-				}
+				var bytes = ByteHelpers.FromHex(hdFingerprintString);
+				hdfp = reverseByteOrder ? new HDFingerprint(bytes.Reverse().ToArray()) : new HDFingerprint(bytes);
 			}
 			return hdfp;
 		}
@@ -118,8 +112,7 @@ namespace WalletWasabi.Helpers
 				throw new FormatException("Invalid address manager file");
 			}
 
-			BitcoinStream stream = new BitcoinStream(data);
-			stream.Type = SerializationType.Disk;
+			BitcoinStream stream = new BitcoinStream(data) { Type = SerializationType.Disk };
 			uint magic = 0;
 			stream.ReadWrite(ref magic);
 			if (expectedNetwork != null && expectedNetwork.Magic != magic)
