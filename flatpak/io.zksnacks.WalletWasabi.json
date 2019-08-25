@@ -1,0 +1,46 @@
+{
+    "app-id": "io.zksnacks.WalletWasabi.Gui",
+    "runtime": "org.gnome.Platform",
+    "runtime-version": "3.32",
+    "sdk": "org.gnome.Sdk",
+    "command": "WalletWasabi.Gui",
+    "finish-args": [
+        "--share=ipc",
+        "--socket=x11",
+        "--socket=wayland",
+        "--share=network",
+        "--socket=pulseaudio",
+        "--device=all",
+        "--socket=session-bus",
+        "--filesystem=home"
+    ],
+    "modules": [
+        {
+            "name": "build-output",
+            "buildsystem": "simple",
+            "build-commands": [
+                "install -D dist/** /app/bin/"
+            ],
+            "sources": [
+                {
+                    "type": "dir",
+                    "path": "dist"
+                }
+            ]
+        },
+        {
+            "name": "gui",
+            "buildsystem": "simple",
+            "build-commands": [
+                " /usr/lib/sdk/dotnet/enable.sh; dotnet publish -r  -f netcoreapp2.1 -c Release --source nuget-sources my.input.Desktop.csproj"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "path": "nuget-sources.json"
+                }
+            ]
+        }
+    ]
+}
+
